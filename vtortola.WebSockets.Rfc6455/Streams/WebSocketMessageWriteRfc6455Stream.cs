@@ -92,22 +92,14 @@ namespace vtortola.WebSockets.Rfc6455
                 throw new WebSocketException("The write stream has been closed.");
         }
 
-        public override Task CloseAsync()
+        public override async Task CloseAsync()
         {
             if (Interlocked.CompareExchange(ref this.state, STATE_CLOSED, STATE_OPEN) != STATE_OPEN)
-                return TaskHelper.CompletedTask;
+                return;
 
             var dataFrame = this._webSocket.Connection.PrepareFrame(this._webSocket.Connection.SendBuffer, this._internalUsedBufferLength, true, this._isHeaderSent, this._messageType, this.ExtensionFlags);
-            var sendFrameTask = this._webSocket.Connection.SendFrameAsync(dataFrame, CancellationToken.None);
-
-            var endWriteTask = sendFrameTask.ContinueWith(
-                (sendTask, s) => ((WebSocketConnectionRfc6455)s).EndWriting(),
-                this._webSocket.Connection,
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-
-            return endWriteTask;
+            await this._webSocket.Connection.SendFrameAsync(dataFrame, CancellationToken.None);
+            this._webSocket.Connection.EndWriting();
         }
 
         protected override void Dispose(bool disposing)
