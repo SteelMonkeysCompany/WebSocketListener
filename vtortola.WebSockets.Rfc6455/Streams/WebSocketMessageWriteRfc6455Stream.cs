@@ -98,7 +98,7 @@ namespace vtortola.WebSockets.Rfc6455
                 return;
 
             var dataFrame = this._webSocket.Connection.PrepareFrame(this._webSocket.Connection.SendBuffer, this._internalUsedBufferLength, true, this._isHeaderSent, this._messageType, this.ExtensionFlags);
-            await this._webSocket.Connection.SendFrameAsync(dataFrame, CancellationToken.None);
+            await this._webSocket.Connection.SendFrameAsync(dataFrame, CancellationToken.None).ConfigureAwait(false);
             this._webSocket.Connection.EndWriting();
         }
 
